@@ -1,0 +1,7 @@
+{
+    "name": "shattering/programacion",
+    "require": {
+        "illuminate/database": "^13.9",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
