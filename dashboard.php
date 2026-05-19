@@ -1,12 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/session.php';
 require_once __DIR__ . '/includes/security.php';
-
-// Validar que exista la sesión del usuario
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit;
-}
+require_once __DIR__ . '/includes/seguridad_pagina.php'; 
 
 $correo = $_SESSION['user_email'];
 ?>

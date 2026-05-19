@@ -29,8 +29,6 @@ if (!validate_csrf_token($csrf_token)) {
 $usuario = Usuario::where('correo', $correo)->first();
 
 if (!$usuario) {
-    // Para prevenir enumeración de usuarios (Account Enumeration), 
-    // registramos el intento pero mostramos mensaje genérico.
     AuditoriaLogin::create([
         'correo_intento' => $correo,
         'ip_origen' => $ip_origen,
@@ -56,16 +54,13 @@ if ($usuario->cuenta_bloqueada) {
     exit;
 }
 
-// 4. Verificación de Contraseña (usando BCRYPT o ARGON2ID por defecto de PHP password_hash)
+// 4. Verificación de Contraseña
 if (password_verify($password, $usuario->hash_password)) {
     // Login Exitoso
-    
-    // Resetear intentos fallidos y actualizar fecha
     $usuario->intentos_fallidos = 0;
     $usuario->ultimo_acceso = date('Y-m-d H:i:s');
     $usuario->save();
 
-    // Registrar auditoría exitosa
     AuditoriaLogin::create([
         'correo_intento' => $correo,
         'ip_origen' => $ip_origen,
@@ -73,7 +68,7 @@ if (password_verify($password, $usuario->hash_password)) {
         'detalles_navegador' => $user_agent
     ]);
 
-    // PROTECCIÓN CONTRA SESSION FIXATION: Regenerar el ID de la sesión fuertemente
+    // PROTECCIÓN CONTRA SESSION FIXATION: Regenerar el ID
     session_regenerate_id(true);
 
     // Guardar datos en sesión
@@ -81,13 +76,15 @@ if (password_verify($password, $usuario->hash_password)) {
     $_SESSION['user_role_id'] = $usuario->id_rol;
     $_SESSION['user_email'] = $usuario->correo;
     
+    // 🔥 NUEVO: Generamos el token de sesión para el guardián
+    $_SESSION['TokenSesion'] = bin2hex(random_bytes(32));
+    
     // Redirigir al dashboard
     header("Location: dashboard.php");
     exit;
 
 } else {
     // Login Fallido - Lógica Anti-Fuerza Bruta
-    
     $usuario->intentos_fallidos += 1;
     
     if ($usuario->intentos_fallidos >= 3) {
@@ -95,7 +92,6 @@ if (password_verify($password, $usuario->hash_password)) {
     }
     $usuario->save();
 
-    // Registrar auditoría fallida
     AuditoriaLogin::create([
         'correo_intento' => $correo,
         'ip_origen' => $ip_origen,
@@ -107,3 +103,4 @@ if (password_verify($password, $usuario->hash_password)) {
     header("Location: index.php");
     exit;
 }
+?>

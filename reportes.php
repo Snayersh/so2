@@ -2,15 +2,9 @@
 require_once __DIR__ . '/includes/session.php';
 require_once __DIR__ . '/includes/security.php';
 require_once __DIR__ . '/bootstrap.php'; // Carga Eloquent ORM
+require_once __DIR__ . '/includes/seguridad_pagina.php';
 
 use App\Models\Usuario;
-
-// Validar que exista la sesión del usuario
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit;
-}
-
 // Obtener datos del usuario logueado usando Eloquent y cargar la relación del Rol
 $usuario = Usuario::with('rol')->find($_SESSION['user_id']);
 
